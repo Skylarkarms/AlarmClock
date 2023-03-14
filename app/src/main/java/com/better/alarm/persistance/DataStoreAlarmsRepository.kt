@@ -88,7 +88,7 @@ class DataStoreAlarmsRepository(
           onDelete = { deletedId, awaitDeleted ->
             ioScope.launch {
               awaitDeleted()
-              logger.debug { "Removed $deletedId from stores map" }
+//              logger.debug { "Removed $deletedId from stores map" }
               stores.remove(id)
             }
           },
@@ -158,9 +158,9 @@ private class ProtobufAlarmStore(
                 alarms.copy(alarms = modified)
               }
           if (id in updated.alarms) {
-            logger.debug { "Stored $next on disc" }
+//            logger.debug { "Stored $next on disc" }
           } else {
-            logger.debug { "Deleted $id on disc" }
+//            logger.debug { "Deleted $id on disc" }
           }
           writtenState.value = next
           updated

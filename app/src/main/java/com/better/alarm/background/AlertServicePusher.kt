@@ -2,9 +2,11 @@ package com.better.alarm.background
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.better.alarm.configuration.Store
 import com.better.alarm.interfaces.Intents
 import com.better.alarm.logger.Logger
+import com.better.alarm.logger.StringUtils
 import com.better.alarm.oreo
 import com.better.alarm.preOreo
 import com.better.alarm.util.mapNotNull
@@ -12,7 +14,12 @@ import com.better.alarm.util.subscribeForever
 import com.better.alarm.wakelock.WakeLockManager
 
 class AlertServicePusher(store: Store, context: Context, wm: WakeLockManager, logger: Logger) {
-  init {
+    companion object {
+        private const val TAG = "AlertServicePusher"
+    }
+    init {
+        Log.println(Log.ASSERT, TAG, "init this = $this" +
+            ",\n from stack = ${StringUtils.getStackTrace()}")
     store.events
         .mapNotNull {
           when (it) {
@@ -30,13 +37,20 @@ class AlertServicePusher(store: Store, context: Context, wm: WakeLockManager, lo
             is Event.ShowSkip -> null
             is Event.HideSkip -> null
             is Event.NullEvent -> throw RuntimeException("NullEvent")
-          }?.apply { setClass(context, AlertServiceWrapper::class.java) }
+          }?.apply {
+              Log.println(Log.WARN, TAG, ":SETTING AlertServiceWrapper.class <><><> $it" +
+                  ",\n from this = $this")
+              setClass(context, AlertServiceWrapper::class.java) }
         }
         .subscribeForever { intent ->
           wm.acquireTransitionWakeLock(intent)
           oreo { context.startForegroundService(intent) }
           preOreo { context.startService(intent) }
-          logger.debug { "pushed intent ${intent.action} to AlertServiceWrapper" }
+//          logger.debug { "pushed intent ${intent.action} to AlertServiceWrapper" }
         }
   }
+
+    override fun toString(): String {
+        return super.toString() + "@${hashCode()}"
+    }
 }

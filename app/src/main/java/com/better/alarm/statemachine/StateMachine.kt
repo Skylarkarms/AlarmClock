@@ -121,7 +121,9 @@ import kotlin.properties.Delegates
  * is inspired by an
  * [Android SM](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/core/java/com/android/internal/util/StateMachine.java)
  */
-internal class StateMachine<T : Any>(val name: String, private val logger: Logger) {
+internal class StateMachine<T : Any>(val name: String,
+                                     private val logger: Logger
+                                     ) {
   /** State hierarchy as a tree. Root Node is null. */
   private lateinit var tree: Map<State<T>, Node<T>>
 

@@ -108,7 +108,9 @@ fun startKoin(context: Context): Koin {
     single(named("datastore")) { File(get<Context>().applicationContext.filesDir, "datastore") }
     factory { get<Context>().contentResolver }
     single<DatabaseQuery> { SQLiteDatabaseQuery(get()) }
-    single { Alarms(get(), get(), get(), get(), get(), get(), logger("Alarms"), get()) } binds
+    single { Alarms(get(), get(), get(), get(), get(), get(),
+//        logger("Alarms"),
+        get()) } binds
         arrayOf(IAlarmsManager::class, DatastoreMigration::class)
     single { ScheduledReceiver(get(), get(), get(), get()) }
     single { ToastPresenter(get(), get()) }

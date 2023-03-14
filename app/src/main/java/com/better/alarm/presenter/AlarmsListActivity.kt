@@ -28,6 +28,7 @@ import android.transition.ChangeTransform
 import android.transition.Fade
 import android.transition.Slide
 import android.transition.TransitionSet
+import android.util.Log
 import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
@@ -48,6 +49,7 @@ import com.better.alarm.configuration.globalInject
 import com.better.alarm.configuration.globalLogger
 import com.better.alarm.interfaces.IAlarmsManager
 import com.better.alarm.logger.Logger
+import com.better.alarm.logger.StringUtils
 import com.better.alarm.lollipop
 import com.better.alarm.model.AlarmValue
 import com.better.alarm.model.AlarmsRepository
@@ -70,7 +72,7 @@ import org.koin.dsl.module
 class AlarmsListActivity : AppCompatActivity() {
   private lateinit var mActionBarHandler: ActionBarHandler
 
-  private val logger: Logger by globalLogger("AlarmsListActivity")
+//  private val logger: Logger by globalLogger("AlarmsListActivity")
   private val alarms: IAlarmsManager by globalInject()
   private val store: Store by globalInject()
   private val repository: AlarmsRepository by globalInject()
@@ -82,6 +84,7 @@ class AlarmsListActivity : AppCompatActivity() {
   private val dynamicThemeHandler: DynamicThemeHandler by globalInject()
 
   companion object {
+      private const val TAG = "AlarmsListActivity"
     val uiStoreModule: Module = module { single<UiStore> { createStore(EditedAlarm(), get()) } }
 
     private fun createStore(edited: EditedAlarm, alarms: IAlarmsManager): UiStore {
@@ -140,9 +143,14 @@ class AlarmsListActivity : AppCompatActivity() {
     }
   }
 
+    init {
+        Log.println(Log.ASSERT, TAG, ": this built $this" +
+            ",\n stack = ${StringUtils.getStackTrace()}")
+    }
+
   override fun onNewIntent(intent: Intent?) {
     super.onNewIntent(intent)
-    logger.debug { "new $intent, ${intent?.extras}" }
+//    logger.debug { "new $intent, ${intent?.extras}" }
     if (intent?.getStringExtra("reason") == SettingsFragment.themeChangeReason) {
       finish()
       startActivity(
@@ -158,8 +166,13 @@ class AlarmsListActivity : AppCompatActivity() {
     uiStore.editing().value?.writeInto(outState)
   }
 
+    override fun toString(): String {
+        return super<AppCompatActivity>.toString() + "@${hashCode()}"
+    }
+
   @SuppressLint("SourceLockedOrientationActivity")
   override fun onCreate(savedInstanceState: Bundle?) {
+      Log.println(Log.VERBOSE, TAG, "onCreate: $this")
     AlarmApplication.startOnce(application)
     setTheme(dynamicThemeHandler.defaultTheme())
     super.onCreate(savedInstanceState)
@@ -167,7 +180,7 @@ class AlarmsListActivity : AppCompatActivity() {
     val prevVersion = savedInstanceState?.getInt("version", BuildConfig.VERSION_CODE)
     if (prevVersion == BuildConfig.VERSION_CODE) {
       val restored = editedAlarmFromSavedInstanceState(savedInstanceState)
-      logger.trace { "Restored $this with $restored" }
+//      logger.trace { "Restored $this with $restored" }
       uiStore.editing().onNext(restored)
     } else {
       // need this because store is not scoped
@@ -245,7 +258,7 @@ class AlarmsListActivity : AppCompatActivity() {
   }
 
   override fun onDestroy() {
-    logger.debug { "$this" }
+//    logger.debug { "$this" }
     super.onDestroy()
     this.mActionBarHandler.onDestroy()
   }
@@ -312,9 +325,9 @@ class AlarmsListActivity : AppCompatActivity() {
     val currentFragment = supportFragmentManager.findFragmentById(R.id.main_fragment_container)
 
     if (currentFragment?.javaClass == fragment.javaClass) {
-      logger.trace { "skipping fragment transition, because already showing $currentFragment" }
+//      logger.trace { "skipping fragment transition, because already showing $currentFragment" }
     } else {
-      logger.trace { "transition from: $currentFragment to $fragment" }
+//      logger.trace { "transition from: $currentFragment to $fragment" }
       currentFragment?.apply { lollipop { exitTransition = Fade() } }
 
       supportFragmentManager
@@ -375,7 +388,7 @@ class AlarmsListActivity : AppCompatActivity() {
         putByteArray("edited", ProtoBuf.encodeToByteArray(AlarmValue.serializer(), edited))
       }
 
-      logger.trace { "Saved state $toWrite" }
+//      logger.trace { "Saved state $toWrite" }
     }
   }
 }

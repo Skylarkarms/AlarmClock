@@ -16,11 +16,14 @@
 package com.better.alarm.model
 
 import android.annotation.SuppressLint
+import android.util.Log
 import com.better.alarm.configuration.Prefs
 import com.better.alarm.configuration.Store
+import com.better.alarm.configuration.globalLogger
 import com.better.alarm.interfaces.Alarm
 import com.better.alarm.interfaces.IAlarmsManager
 import com.better.alarm.logger.Logger
+import com.better.alarm.logger.StringUtils
 import com.better.alarm.persistance.DatabaseQuery
 import com.better.alarm.persistance.DatastoreMigration
 
@@ -33,12 +36,20 @@ class Alarms(
     private val alarmsScheduler: IAlarmsScheduler,
     private val broadcaster: AlarmCore.IStateNotifier,
     private val alarmsRepository: AlarmsRepository,
-    private val logger: Logger,
-    private val databaseQuery: DatabaseQuery,
+//    private val logger: Logger,
+    private val databaseQuery: DatabaseQuery
 ) : IAlarmsManager, DatastoreMigration {
+    companion object {
+        private const val TAG = "Alarms"
+    }
   private val alarms: MutableMap<Int, AlarmCore> = mutableMapOf()
 
+    init {
+        Log.d(TAG, "built...$this: ")
+    }
+
   fun start() {
+      Log.println(Log.INFO, TAG, "start: stack = " + StringUtils.getStackTrace())
     alarms.putAll(alarmsRepository.query().associate { store -> store.id to createAlarm(store) })
     alarms.values.forEach { it.start() }
     if (!alarmsRepository.initialized) {
@@ -58,11 +69,12 @@ class Alarms(
   }
 
   override fun getAlarm(alarmId: Int): AlarmCore? {
+      Log.println(Log.WARN, TAG, "getAlarm: this is $this")
     return alarms[alarmId].also {
       if (it == null) {
         val exception =
             RuntimeException("Alarm with id $alarmId not found!").apply { fillInStackTrace() }
-        logger.error(exception) { "Alarm with id $alarmId not found!" }
+//        logger.error(exception) { "Alarm with id $alarmId not found!" }
       }
     }
   }
@@ -74,7 +86,8 @@ class Alarms(
     return alarm
   }
 
-  fun onAlarmFired(alarm: AlarmCore, calendarType: CalendarType?) {
+  fun onAlarmFired(alarm: AlarmCore/*, calendarType: CalendarType?*/) {
+      Log.println(Log.VERBOSE, TAG, "onAlarmFired: stack = ${StringUtils.getSingleStackTrace()}")
     // TODO this should not be needed
     alarmsScheduler.removeAlarm(alarm.id)
     alarm.onAlarmFired()
@@ -87,7 +100,8 @@ class Alarms(
   private fun createAlarm(alarmStore: AlarmStore): AlarmCore {
     return AlarmCore(
         alarmStore,
-        logger,
+        globalLogger("AlarmCore").value,
+//        logger,
         alarmsScheduler,
         broadcaster,
         prefs,
@@ -121,11 +135,11 @@ class Alarms(
 
   override fun migrateDatabase() {
     val alarmsInDatabase = databaseQuery.query()
-    logger.warning {
-      "migrateDatabase() found ${alarmsInDatabase.size} alarms in SQLite database..."
-    }
+//    logger.warning {
+//      "migrateDatabase() found ${alarmsInDatabase.size} alarms in SQLite database..."
+//    }
     alarmsInDatabase.forEach { restored ->
-      logger.warning { "Migrating $restored from SQLite to DataStore" }
+//      logger.warning { "Migrating $restored from SQLite to DataStore" }
       val alarmStore = alarmsRepository.create()
       alarmStore.modify { restored.copy(id = alarmStore.id) }
       val alarm = createAlarm(alarmStore)

@@ -1,5 +1,6 @@
 package com.better.alarm.model
 
+import android.util.Log
 import com.better.alarm.background.Event
 import com.better.alarm.configuration.Store
 import com.better.alarm.interfaces.Intents
@@ -12,7 +13,11 @@ import java.util.Calendar
  * @author Yuriy
  */
 class AlarmStateNotifier(private val store: Store) : IStateNotifier {
-  override fun broadcastAlarmState(id: Int, action: String) {
+  companion object {
+      private const val TAG = "AlarmStateNotifier"
+  }
+
+    override fun broadcastAlarmState(id: Int, action: String) {
     broadcastAlarmState(id, action, null)
   }
 
@@ -32,6 +37,13 @@ class AlarmStateNotifier(private val store: Store) : IStateNotifier {
           Intents.ALARM_REMOVE_SKIP -> Event.HideSkip(id)
           else -> throw RuntimeException("Unknown action $action")
         }
+      Log.println(Log.ERROR, TAG, "broadcastAlarmState: event = $event" +
+          ",\n from this $this" +
+          ",\n action = $action")
     store.events.onNext(event)
   }
+
+    override fun toString(): String {
+        return super.toString() + "@${hashCode()}"
+    }
 }

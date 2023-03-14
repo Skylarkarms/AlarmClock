@@ -18,6 +18,7 @@ package com.better.alarm.configuration
 import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Build
+import android.util.Log
 import android.view.ViewConfiguration
 import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
@@ -25,8 +26,10 @@ import com.better.alarm.R
 import com.better.alarm.alert.BackgroundNotifications
 import com.better.alarm.background.AlertServicePusher
 import com.better.alarm.bugreports.BugReporter
+import com.better.alarm.configuration.AlarmApplicationInit.hasStarted
 import com.better.alarm.configuration.AlarmApplicationInit.startOnce
 import com.better.alarm.createNotificationChannels
+import com.better.alarm.logger.StringUtils
 import com.better.alarm.model.AlarmValue
 import com.better.alarm.model.Alarms
 import com.better.alarm.model.AlarmsScheduler
@@ -35,26 +38,48 @@ import com.better.alarm.presenter.ToastPresenter
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AlarmApplication : MultiDexApplication() {
-  override fun onCreate() {
-    startOnce(this)
-    super.onCreate()
-  }
-
-  companion object {
-    @JvmStatic
-    fun startOnce(application: Application) {
-      application.startOnce()
+    override fun onCreate() {
+        //Always initiates FIRST when alarm rings on app off
+        Log.println(Log.WARN, TAG, "onCreate: $this")
+        startOnce(this)
+        super.onCreate()
     }
-  }
+
+    companion object {
+        private const val TAG = "AlarmApplication"
+        @JvmStatic
+        fun startOnce(application: Application) {
+            val started = application.hasStarted()
+            Log.println(Log.VERBOSE, TAG, "startOnce: application = $application" +
+                ",\n hasStarted? $started")
+            if (started) {
+                Log.println(Log.ERROR, TAG, " " +
+                    "\n startOnce(ALREADY STARTED!!!!<><><><>): " +
+                    "\n from stack = ${StringUtils.getStackTrace()}")
+            }
+            application.startOnce()
+        }
+    }
+
+    override fun toString(): String {
+        return super.toString() + "@${hashCode()}"
+    }
 }
 
 private object AlarmApplicationInit {
+    private const val TAG = "AlarmApplication"
   private val started = AtomicBoolean(false)
+
+    fun Application.hasStarted() : Boolean {
+        return started.get()
+    }
 
   @SuppressLint("SoonBlockedPrivateApi")
   fun Application.startOnce() {
+      Log.println(Log.INFO, TAG, "startOnce: is started? ${started.get()}")
     if (started.getAndSet(true)) {
-      return
+        Log.println(Log.ERROR, TAG, "startOnce: YES IT WAS!! from = ${StringUtils.getStackTrace()}")
+        return
     }
 
     runCatching {
@@ -65,6 +90,7 @@ private object AlarmApplicationInit {
           .setBoolean(ViewConfiguration.get(this), false)
     }
 
+      Log.println(Log.ERROR, TAG, "startOnce: this = $this")
     val koin = startKoin(applicationContext)
 
     koin.get<BugReporter>().attachToMainThread(this)
@@ -79,9 +105,9 @@ private object AlarmApplicationInit {
     createNotificationChannels()
 
     // must be started the last, because otherwise we may loose intents from it.
-    val alarmsLogger = koin.logger("Alarms")
+//    val alarmsLogger = koin.logger("Alarms")
     koin.get<Alarms>().start()
-    alarmsLogger.debug { "Started alarms, SDK is " + Build.VERSION.SDK_INT }
+//    alarmsLogger.debug { "Started alarms, SDK is " + Build.VERSION.SDK_INT }
     // start scheduling alarms after all alarms have been started
     koin.get<AlarmsScheduler>().start()
 
@@ -94,7 +120,9 @@ private object AlarmApplicationInit {
           .buffer(2, 1)
           .map { (prev, next) -> next.minus(prev).map { it.toString() } }
           .distinctUntilChanged()
-          .subscribe { lines -> lines.forEach { alarmsLogger.debug { it } } }
+          .subscribe { lines -> lines.forEach {
+//              alarmsLogger.debug { it }
+          } }
     }
   }
 }

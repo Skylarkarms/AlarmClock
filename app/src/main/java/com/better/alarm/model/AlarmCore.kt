@@ -17,12 +17,14 @@
 
 package com.better.alarm.model
 
+import android.util.Log
 import com.better.alarm.BuildConfig
 import com.better.alarm.configuration.Prefs
 import com.better.alarm.configuration.Store
 import com.better.alarm.interfaces.Alarm
 import com.better.alarm.interfaces.Intents
 import com.better.alarm.logger.Logger
+import com.better.alarm.logger.StringUtils
 import com.better.alarm.statemachine.ComplexTransition
 import com.better.alarm.statemachine.State
 import com.better.alarm.statemachine.StateMachine
@@ -123,6 +125,10 @@ class AlarmCore(
     private val calendars: Calendars,
     private val onDelete: (Int) -> Unit,
 ) : Alarm {
+
+    companion object {
+        private const val TAG = "AlarmCore"
+    }
   private val stateMachine: StateMachine<Event>
   private val df: DateFormat
   private val container: AlarmValue
@@ -200,7 +206,7 @@ class AlarmCore(
       if (BuildConfig.DEBUG) {
         throw RuntimeException("Unhandled event: $event")
       } else {
-        log.warning { "Unhandled event: $event" }
+//        log.warning { "Unhandled event: $event" }
         return true
       }
     }
@@ -251,15 +257,15 @@ class AlarmCore(
     }
 
     override fun onSnooze(snooze: Snooze) {
-      log.warning { "$this is in DisabledState" }
+//      log.warning { "$this is in DisabledState" }
     }
 
     override fun onDismiss() {
-      log.warning { "$this is in DisabledState" }
+//      log.warning { "$this is in DisabledState" }
     }
 
     override fun onDisable() {
-      log.warning { "$this is in DisabledState" }
+//      log.warning { "$this is in DisabledState" }
     }
   }
 
@@ -272,10 +278,10 @@ class AlarmCore(
           stateMachine.transitionTo(normalSet)
         }
       } else if (container.isDeleteAfterDismiss) {
-        log.debug { "Delete after dismiss!" }
+//        log.debug { "Delete after dismiss!" }
         stateMachine.transitionTo(deletedState)
       } else {
-        log.debug { "Repeating is not set, disabling the alarm" }
+//        log.debug { "Repeating is not set, disabling the alarm" }
         alarmStore.modify { withIsEnabled(false) }
         stateMachine.transitionTo(disabledState)
       }
@@ -375,7 +381,7 @@ class AlarmCore(
             showSkipNotification(nextPrealarmTime)
           } else {
             // TODO this should never happen
-            log.e("PreAlarm is still in the past!")
+//            log.e("PreAlarm is still in the past!")
             stateMachine.transitionTo(if (container.isEnabled) enableTransition else disabledState)
           }
         }
@@ -409,7 +415,7 @@ class AlarmCore(
             mAlarmsScheduler.setInexactAlarm(id, toShowSkip)
           }
           else -> {
-            log.debug { "Alarm $id is due in less than $skipTime minutes - show notification" }
+//            log.debug { "Alarm $id is due in less than $skipTime minutes - show notification" }
             broadcastAlarmState(Intents.ALARM_SHOW_SKIP)
           }
         }
@@ -487,7 +493,13 @@ class AlarmCore(
 
     /** handles both snoozed and main for now */
     inner class FiredState : AlarmState() {
+        override fun toString(): String {
+            return super.toString() + "@${hashCode()}"
+        }
       override fun onEnter(reason: Event) {
+          Log.println(Log.INFO, TAG, "onEnter: reason = $reason" +
+              ",\n this = $this" +
+              ",\n stack = ${StringUtils.getSingleStackTrace()}")
         broadcastAlarmState(Intents.ALARM_ALERT_ACTION)
         val autoSilenceMinutes = autoSilence.blockingFirst()
         if (autoSilenceMinutes > 0) {
@@ -557,7 +569,7 @@ class AlarmCore(
         nextTime =
             when {
               reason is Snooze && reason.hour != null && reason.minute != null -> {
-                log.debug { "Enter snooze $reason" }
+//                log.debug { "Enter snooze $reason" }
                 val customTime =
                     calendars.now().apply {
                       set(Calendar.HOUR_OF_DAY, reason.hour)
@@ -628,7 +640,7 @@ class AlarmCore(
   }
 
   private fun broadcastAlarmState(action: String, calendar: Calendar? = null) {
-    log.trace { "[Alarm ${container.id}] broadcastAlarmState($action)" }
+//    log.trace { "[Alarm ${container.id}] broadcastAlarmState($action)" }
     when {
       calendar != null -> broadcaster.broadcastAlarmState(container.id, action, calendar)
       else -> broadcaster.broadcastAlarmState(container.id, action)
@@ -775,6 +787,7 @@ class AlarmCore(
   }
 
   fun onAlarmFired() {
+      Log.println(Log.ASSERT, TAG, "onAlarmFired: ")
     stateMachine.sendEvent(Fired)
   }
 

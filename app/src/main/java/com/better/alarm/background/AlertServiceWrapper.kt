@@ -10,6 +10,7 @@ import android.os.Vibrator
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.better.alarm.CHANNEL_ID
 import com.better.alarm.R
@@ -40,6 +41,7 @@ import org.koin.dsl.module
  */
 class AlertServiceWrapper : Service() {
   companion object {
+      private const val TAG = "AlertServiceWrapper"
     fun module(): Module = module {
       factory(named("inCall")) {
         val telephonyManager: TelephonyManager = get()
@@ -130,10 +132,19 @@ class AlertServiceWrapper : Service() {
     }
   }
 
+    init {
+        Log.println(Log.WARN, TAG, ": built this $this")
+    }
+
+    override fun toString(): String {
+        return super.toString() + "@${hashCode()}"
+    }
+
   private val wakelocks: WakeLockManager by globalInject()
   private lateinit var alertService: AlertService
 
   override fun onCreate() {
+      Log.d(TAG, "onCreate: this = $this")
     AlarmApplication.startOnce(application)
     alertService =
         koinApplication {
