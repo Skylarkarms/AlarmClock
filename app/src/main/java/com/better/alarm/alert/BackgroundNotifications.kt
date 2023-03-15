@@ -24,6 +24,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.text.format.DateFormat
+import android.util.Log
 import com.better.alarm.CHANNEL_ID
 import com.better.alarm.R
 import com.better.alarm.background.Event
@@ -48,8 +49,12 @@ class BackgroundNotifications(
     private val prefs: Prefs,
     private val store: Store
 ) {
+    override fun toString(): String {
+        return super.toString() + "@${hashCode()}"
+    }
   init {
     store.events.subscribeForever { event ->
+//        Log.println(Log.VERBOSE, TAG, "event is = $event ")
       when (event) {
         is Event.AlarmEvent -> nm.cancel(event.id + SNOOZE_NOTIFICATION)
         is Event.PrealarmEvent -> nm.cancel(event.id + SNOOZE_NOTIFICATION)
@@ -174,7 +179,8 @@ class BackgroundNotifications(
   }
 
   companion object {
-    private const val DM12 = "E h:mm aa"
+//      private const val TAG = "BackgroundNotifications"
+      private const val DM12 = "E h:mm aa"
     private const val DM24 = "E kk:mm"
     private const val SNOOZE_NOTIFICATION = 1000
     private const val ONLY_MANUAL_DISMISS_OFFSET = 2000

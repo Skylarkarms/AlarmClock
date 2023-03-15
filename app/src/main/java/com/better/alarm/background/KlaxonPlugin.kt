@@ -39,6 +39,10 @@ class KlaxonPlugin(
     private const val SILENT = 0f
   }
 
+    override fun toString(): String {
+        return super.toString() + "@${hashCode()}"
+    }
+
   private var player: Player? = null
   private var disposable = Disposables.empty()
 

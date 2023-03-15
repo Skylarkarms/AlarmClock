@@ -22,6 +22,10 @@ class VibrationPlugin(
     private val scheduler: Scheduler,
     private val vibratePreference: Observable<Boolean>
 ) : AlertPlugin {
+    override fun toString(): String {
+        return super.toString() + "@${hashCode()}"
+    }
+
   private val vibratePattern: LongArray = longArrayOf(500, 500)
   private var disposable = Disposables.empty()
 

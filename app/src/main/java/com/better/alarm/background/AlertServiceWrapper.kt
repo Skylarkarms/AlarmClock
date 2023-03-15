@@ -66,7 +66,8 @@ class AlertServiceWrapper : Service() {
             prealarmVolume = get<Prefs>().preAlarmVolume.observe(),
             fadeInTimeInMillis = get<Prefs>().fadeInTimeInSeconds.observe().map { it * 1000 },
             inCall = get(named("inCall")),
-            scheduler = get())
+            scheduler = get()
+        )
       }
 
       factory<AlertPlugin>(named("VibrationPlugin")) {
@@ -207,11 +208,14 @@ class AlertServiceWrapper : Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+      Log.println(Log.WARN, TAG, "onStartCommand: this = $this" +
+          ",\n intent is = $intent")
     return if (intent == null) {
       // this also has to be delivered, because someone has to call startForeground()
       alertService.onStartCommand(Event.NullEvent())
       START_NOT_STICKY
     } else {
+        Log.println(Log.INFO, TAG, "onStartCommand: intent action = ${intent.action}")
       alertService.onStartCommand(
           when (intent.action) {
             Intents.ALARM_ALERT_ACTION -> Event.AlarmEvent(intent.getIntExtra(Intents.EXTRA_ID, -1))

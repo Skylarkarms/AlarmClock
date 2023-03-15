@@ -46,9 +46,7 @@ import com.better.alarm.configuration.EditedAlarm
 import com.better.alarm.configuration.Store
 import com.better.alarm.configuration.globalGet
 import com.better.alarm.configuration.globalInject
-import com.better.alarm.configuration.globalLogger
 import com.better.alarm.interfaces.IAlarmsManager
-import com.better.alarm.logger.Logger
 import com.better.alarm.logger.StringUtils
 import com.better.alarm.lollipop
 import com.better.alarm.model.AlarmValue

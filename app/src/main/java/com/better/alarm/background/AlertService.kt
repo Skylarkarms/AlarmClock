@@ -1,6 +1,7 @@
 package com.better.alarm.background
 
 import android.app.Notification
+import android.util.Log
 import com.better.alarm.BuildConfig
 import com.better.alarm.interfaces.IAlarmsManager
 import com.better.alarm.interfaces.Intents
@@ -72,6 +73,14 @@ class AlertService(
     private val notifications: NotificationsPlugin,
     private val enclosing: EnclosingService
 ) {
+    init {
+        Log.println(Log.ERROR, TAG, "plugins are: ${toString(plugins)}")
+    }
+    fun<E> toString(collection: Collection<E>) : String {
+        val builder = StringBuilder()
+        collection.forEachIndexed { index, e: E -> builder.append("\n [${index}] >> $e") }
+        return builder.toString()
+    }
   private val wantedVolume: BehaviorSubject<TargetVolume> =
       BehaviorSubject.createDefault(TargetVolume.MUTED)
 
@@ -94,11 +103,11 @@ class AlertService(
         .skipWhile { it.isEmpty() }
         .subscribeIn(disposable) { active ->
           if (active.isNotEmpty()) {
-            log.debug { "activeAlarms: $active" }
+//            log.debug { "activeAlarms: $active" }
             playSound(active)
             showNotifications(active)
           } else {
-            log.debug { "no alarms anymore, stopSelf()" }
+//            log.debug { "no alarms anymore, stopSelf()" }
             soundAlarmDisposable.dispose()
             wantedVolume.onNext(TargetVolume.MUTED)
             nowShowing
@@ -111,12 +120,12 @@ class AlertService(
   }
 
   fun onDestroy() {
-    log.debug { "onDestroy" }
+//    log.debug { "onDestroy" }
     wakelocks.releaseServiceLock()
   }
 
   fun onStartCommand(event: Event): Boolean {
-    log.debug { "onStartCommand $event" }
+//    log.debug { "onStartCommand $event" }
 
     return if (stateValid(event)) {
       when (event) {
@@ -180,13 +189,13 @@ class AlertService(
               PluginAlarmData(alarm.id, alarmtone, label)
             }
 
-    log.debug { "Show notifications: $toShow" }
+//    log.debug { "Show notifications: $toShow" }
 
     // Send the notification using the alarm id to easily identify the
     // correct notification.
     toShow.forEachIndexed { index, alarmData ->
       val startForeground = nowShowing.isEmpty() && index == 0
-      log.debug { "notifications.show(${alarmData}, $index, $startForeground)" }
+//      log.debug { "notifications.show(${alarmData}, $index, $startForeground)" }
       notifications.show(alarmData, index, startForeground)
     }
 
@@ -225,11 +234,16 @@ class AlertService(
     val label = alarm?.labelOrDefault ?: ""
     val pluginDisposables =
         plugins.map {
-          it.go(
-              PluginAlarmData(id, alarmtone, label),
-              prealarm = type == Type.PREALARM,
-              targetVolume = targetVolumeAccountingForInCallState)
+            it ->
+            Log.println(Log.ASSERT, TAG, "play: it is = $it")
+                it.go(
+                    PluginAlarmData(id, alarmtone, label),
+                    prealarm = type == Type.PREALARM,
+                    targetVolume = targetVolumeAccountingForInCallState
+                )
         }
+      Log.println(Log.WARN, TAG, "play: from this $this" +
+          ",\n plugin disposables = $pluginDisposables")
     soundAlarmDisposable = CompositeDisposable(pluginDisposables)
   }
 
@@ -240,4 +254,8 @@ class AlertService(
       function.invoke(next, index)
     }
   }
+
+    companion object {
+        private const val TAG = "AlertService"
+    }
 }

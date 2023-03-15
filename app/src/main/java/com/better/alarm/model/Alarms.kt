@@ -22,7 +22,6 @@ import com.better.alarm.configuration.Store
 import com.better.alarm.configuration.globalLogger
 import com.better.alarm.interfaces.Alarm
 import com.better.alarm.interfaces.IAlarmsManager
-import com.better.alarm.logger.Logger
 import com.better.alarm.logger.StringUtils
 import com.better.alarm.persistance.DatabaseQuery
 import com.better.alarm.persistance.DatastoreMigration

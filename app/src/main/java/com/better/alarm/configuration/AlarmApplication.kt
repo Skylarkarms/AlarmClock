@@ -17,7 +17,6 @@ package com.better.alarm.configuration
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.os.Build
 import android.util.Log
 import android.view.ViewConfiguration
 import androidx.multidex.MultiDexApplication
