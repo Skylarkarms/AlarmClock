@@ -1,8 +1,11 @@
 package com.better.alarm.interfaces;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+
 import com.better.alarm.BuildConfig;
 import com.better.alarm.OreoKt;
 import com.better.alarm.model.AlarmsReceiver;
@@ -22,4 +25,14 @@ public class PresentationToModelIntents {
     intent.setClass(context, AlarmsReceiver.class);
     return PendingIntent.getBroadcast(context, id, intent, OreoKt.pendingIntentUpdateCurrentFlag());
   }
+//  public static PendingIntent createIntentFilter(BroadcastReceiver receiver, Context context, String action, int id) {
+//    IntentFilter intentF = new IntentFilter(action);
+//    context.registerReceiver(receiver, intentF);
+//    return PendingIntent.getBroadcast(context, id, intentF, OreoKt.pendingIntentUpdateCurrentFlag());
+////    Intent intent = new Intent(action);
+////
+////    intent.putExtra(Intents.EXTRA_ID, id);
+////    intent.setClass(context, AlarmsReceiver.class);
+////    return PendingIntent.getBroadcast(context, id, intent, OreoKt.pendingIntentUpdateCurrentFlag());
+//  }
 }

@@ -51,6 +51,7 @@ class NotificationsPlugin(
     val pendingNotify =
         PendingIntent.getActivity(mContext, alarm.id, notify, pendingIntentUpdateCurrentFlag())
     val pendingSnooze =
+//        PresentationToModelIntents.createIntentFilter(null,
         PresentationToModelIntents.createPendingIntent(
             mContext, PresentationToModelIntents.ACTION_REQUEST_SNOOZE, alarm.id)
     val pendingDismiss =

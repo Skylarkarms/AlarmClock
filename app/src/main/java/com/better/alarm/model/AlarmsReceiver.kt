@@ -41,6 +41,7 @@ class AlarmsReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
     when (intent.action) {
       AlarmsScheduler.ACTION_FIRED -> {
+          Log.println(Log.WARN, TAG, "onReceive: action fired called from this: $this")
         val id = intent.getIntExtra(AlarmsScheduler.EXTRA_ID, -1)
 //        val calendarType =
 //            intent.extras?.getString(AlarmsScheduler.EXTRA_TYPE)?.let { CalendarType.valueOf(it) }
@@ -66,6 +67,7 @@ class AlarmsReceiver : BroadcastReceiver() {
         alarms.getAlarm(id)?.snooze()
       }
       PresentationToModelIntents.ACTION_REQUEST_DISMISS -> {
+          Log.d(TAG, "onReceive: ACTION_REQUEST_DISMISS called from this: $this")
         val id = intent.getIntExtra(AlarmsScheduler.EXTRA_ID, -1)
 //        log.debug { "Dismiss $id" }
         alarms.getAlarm(id)?.dismiss()
@@ -77,10 +79,10 @@ class AlarmsReceiver : BroadcastReceiver() {
       }
     }
     runBlocking { repository.awaitStored() }
-      Log.println(Log.INFO, TAG, "onReceive: intent = $intent")
+//      Log.println(Log.INFO, TAG, "onReceive: intent = $intent")
     intent.getStringExtra("CB")?.let { cbAction -> {
     val i = Intent(cbAction)
-        Log.println(Log.VERBOSE, TAG, "onReceive: intent = $i")
+//        Log.println(Log.VERBOSE, TAG, "onReceive: intent = $i")
         context.sendBroadcast(i)
 //        context.sendBroadcast(Intent(cbAction))
     } }

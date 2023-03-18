@@ -3,6 +3,7 @@ package com.better.alarm.background
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import com.better.alarm.logger.Logger
 import com.better.alarm.oreo
 import com.better.alarm.preOreo
@@ -22,6 +23,9 @@ class VibrationPlugin(
     private val scheduler: Scheduler,
     private val vibratePreference: Observable<Boolean>
 ) : AlertPlugin {
+    companion object {
+        private const val TAG = "VibrationPlugin"
+    }
     override fun toString(): String {
         return super.toString() + "@${hashCode()}"
     }
@@ -44,6 +48,9 @@ class VibrationPlugin(
                 })
             .distinctUntilChanged()
             .switchMap { volume ->
+                Log.d(TAG, "go: volume = $volume")
+//                Observable.just(255)
+//                fadeInSlow(false)
               when (volume) {
                 TargetVolume.MUTED -> Observable.just(0)
                 TargetVolume.FADED_IN -> fadeInSlow(prealarm)
@@ -54,18 +61,21 @@ class VibrationPlugin(
             .subscribe { amplitude ->
               if (amplitude != 0) {
                 oreo {
-                  log.debug { "Starting vibration with amplitude $amplitude" }
+//                  log.debug { "Starting vibration with amplitude $amplitude" }
+                    Log.println(Log.INFO, TAG, "Oreo go: vibrating... $amplitude")
                   vibrator.vibrate(
                       VibrationEffect.createWaveform(vibratePattern, intArrayOf(0, amplitude), 0))
                 }
 
                 preOreo {
-                  log.debug { "Starting vibration" }
+                    Log.println(Log.INFO, TAG, "preOreo go: vibrating... $amplitude")
+
+//                  log.debug { "Starting vibration" }
                   @Suppress("DEPRECATION") // old target API
                   vibrator.vibrate(vibratePattern, 0)
                 }
               } else {
-                log.debug { "Canceling vibration" }
+//                log.debug { "Canceling vibration" }
                 vibrator.cancel()
               }
             }
@@ -88,7 +98,7 @@ class VibrationPlugin(
    * 40, 90, 160, 255) }
    */
   private fun fadeInSlow(prealarm: Boolean): Observable<Int> {
-
+      Log.d(TAG, "fadeInSlow: preAlarm? $prealarm")
     return when {
       prealarm -> Observable.just(0)
       else ->
@@ -96,7 +106,9 @@ class VibrationPlugin(
             Observable.just(defaultAmplidute)
                 .delay(fadeInTimeInMillis.toLong(), TimeUnit.MILLISECONDS, scheduler)
                 .startWith(0)
-                .doOnComplete { log.debug { "Completed vibration fade-in" } }
+                .doOnComplete {
+//                    log.debug { "Completed vibration fade-in" } 
+                }
           }
     }
   }

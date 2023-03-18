@@ -74,7 +74,10 @@ class AlertServiceWrapper : Service() {
         VibrationPlugin(
             log = logger("AlertService"),
             vibrator = get(),
-            fadeInTimeInMillis = get<Prefs>().fadeInTimeInSeconds.observe().map { it * 1000 },
+            fadeInTimeInMillis = get<Prefs>().fadeInTimeInSeconds.observe().map {
+                Log.println(Log.WARN, TAG, "module: seconds = $it")
+                it * 1000
+                                                                                },
             scheduler = get(),
             vibratePreference = get<Prefs>().vibrate.observe())
       }
@@ -133,9 +136,9 @@ class AlertServiceWrapper : Service() {
     }
   }
 
-    init {
-        Log.println(Log.WARN, TAG, ": built this $this")
-    }
+//    init {
+//        Log.println(Log.WARN, TAG, ": built this $this")
+//    }
 
     override fun toString(): String {
         return super.toString() + "@${hashCode()}"
@@ -145,7 +148,7 @@ class AlertServiceWrapper : Service() {
   private lateinit var alertService: AlertService
 
   override fun onCreate() {
-      Log.d(TAG, "onCreate: this = $this")
+//      Log.d(TAG, "onCreate: this = $this")
     AlarmApplication.startOnce(application)
     alertService =
         koinApplication {
@@ -208,14 +211,14 @@ class AlertServiceWrapper : Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-      Log.println(Log.WARN, TAG, "onStartCommand: this = $this" +
-          ",\n intent is = $intent")
+//      Log.println(Log.WARN, TAG, "onStartCommand: this = $this" +
+//          ",\n intent is = $intent")
     return if (intent == null) {
       // this also has to be delivered, because someone has to call startForeground()
       alertService.onStartCommand(Event.NullEvent())
       START_NOT_STICKY
     } else {
-        Log.println(Log.INFO, TAG, "onStartCommand: intent action = ${intent.action}")
+//        Log.println(Log.INFO, TAG, "onStartCommand: intent action = ${intent.action}")
       alertService.onStartCommand(
           when (intent.action) {
             Intents.ALARM_ALERT_ACTION -> Event.AlarmEvent(intent.getIntExtra(Intents.EXTRA_ID, -1))

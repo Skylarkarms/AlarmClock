@@ -1,5 +1,6 @@
 package com.better.alarm.background
 
+import android.util.Log
 import com.better.alarm.R
 import com.better.alarm.logger.Logger
 import com.better.alarm.model.Alarmtone
@@ -33,6 +34,7 @@ class KlaxonPlugin(
     private val scheduler: Scheduler
 ) : AlertPlugin {
   companion object {
+      private const val TAG = "KlaxonPlugin"
     private const val FAST_FADE_IN_TIME = 5000
     private const val FADE_IN_STEPS = 100
     private const val IN_CALL_VOLUME = 0.125f
@@ -76,8 +78,10 @@ class KlaxonPlugin(
           }
         }
 
-    log.debug { "[KlaxonPlugin] go (prealarm: $prealarm)" }
-    val volumeSub = volume.subscribe { currentVolume -> player?.setPerceivedVolume(currentVolume) }
+//    log.debug { "[KlaxonPlugin] go (prealarm: $prealarm)" }
+    val volumeSub = volume.subscribe {
+            currentVolume -> player?.setPerceivedVolume(currentVolume)
+    }
 
     disposable =
         CompositeDisposable(callSub, volumeSub, Disposables.fromAction { player?.stopAndCleanup() })
@@ -88,11 +92,12 @@ class KlaxonPlugin(
     if (alarm.alarmtone !is Alarmtone.Silent) {
       player?.run {
         try {
+            Log.println(Log.WARN, TAG, "playAlarm: $alarm")
           setPerceivedVolume(0f)
           setDataSource(alarm.alarmtone)
           startAlarm()
         } catch (ex: Exception) {
-          log.w("Using the fallback ringtone")
+//          log.w("Using the fallback ringtone")
           // The alert may be on the sd card which could be busy right
           // now. Use the fallback ringtone.
           // Must reset the media player to clear the error state.
@@ -105,7 +110,7 @@ class KlaxonPlugin(
   }
 
   private fun playInCallAlarm() {
-    log.debug { "Using the in-call alarm" }
+//    log.debug { "Using the in-call alarm" }
     player?.run {
       reset()
       setDataSourceFromResource(R.raw.in_call_alarm)
@@ -124,7 +129,9 @@ class KlaxonPlugin(
               .toFloat()
               .div(maxVolume)
               .div(2)
-              .apply { log.debug { "targetPrealarmVolume=$this" } }
+              .apply {
+//                  log.debug { "targetPrealarmVolume=$this" }
+              }
         }
   }
 
@@ -139,7 +146,9 @@ class KlaxonPlugin(
             .takeWhile { it <= fadeInTime }
             .map { elapsed -> elapsed.toFloat() / fadeInTime }
             .map { fraction -> fraction.squared() }
-            .doOnComplete { log.debug { "Completed fade-in in $time milliseconds" } }
+            .doOnComplete {
+//                log.debug { "Completed fade-in in $time milliseconds" }
+            }
 
     return Observable.combineLatest(
         observeVolume(prealarm),
@@ -151,7 +160,7 @@ class KlaxonPlugin(
 
   /** Stops alarm audio */
   private fun Player.stopAndCleanup() {
-    log.debug { "stopping media player" }
+//    log.debug { "stopping media player" }
     try {
       stop()
     } finally {
