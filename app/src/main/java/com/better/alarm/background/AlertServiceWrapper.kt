@@ -75,7 +75,6 @@ class AlertServiceWrapper : Service() {
             log = logger("AlertService"),
             vibrator = get(),
             fadeInTimeInMillis = get<Prefs>().fadeInTimeInSeconds.observe().map {
-                Log.println(Log.WARN, TAG, "module: seconds = $it")
                 it * 1000
                                                                                 },
             scheduler = get(),
@@ -219,6 +218,8 @@ class AlertServiceWrapper : Service() {
       START_NOT_STICKY
     } else {
 //        Log.println(Log.INFO, TAG, "onStartCommand: intent action = ${intent.action}")
+        Log.println(Log.ERROR, TAG, "onStartCommand: this service is: $this" +
+            ",\n action is: ${intent.action}")
       alertService.onStartCommand(
           when (intent.action) {
             Intents.ALARM_ALERT_ACTION -> Event.AlarmEvent(intent.getIntExtra(Intents.EXTRA_ID, -1))
