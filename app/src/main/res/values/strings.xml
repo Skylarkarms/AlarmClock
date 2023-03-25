@@ -204,4 +204,6 @@
 
        \n\nIronically, you should set the sound to "none" in advanced settings.</string>
     <string name="date">Date</string>
+    <string name="super_mario">Super Mario</string>
+    <string name="weekdays">Weekdays</string>
 </resources>

@@ -97,7 +97,12 @@ class AlarmDetailsFragment : Fragment() {
 
     val view =
         inflater.inflate(
-            when (prefs.layout()) {
+            when (prefs.layout()) { //IMO this is bad design... Prefs can be Proactively
+                // retreived, (maybe using the same Koin component), there's no need to make the transaction reactive.
+                //But this is not a fault of the programmer, the underlying reactive component should have made an
+                // explicit distinction between "Reactive" and "Proactive" actions
+                //If reactivity was the only choice, observer syncronization should be
+                // performed on instance initializing not here.
               Layout.CLASSIC -> R.layout.details_fragment_classic
               Layout.COMPACT -> R.layout.details_fragment_compact
               else -> R.layout.details_fragment_bold
